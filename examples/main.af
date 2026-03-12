@@ -11,3 +11,10 @@ resource "af_ec2_instance" "web" {
   instance_type = "t2.micro"
   name          = "amanoform-web-server"
 }
+
+resource "af_security_group" "web" {
+  name          = "amanoform-web-sg"
+  description   = "Allow HTTP and SSH traffic"
+  ingress_rules = "80:tcp:0.0.0.0/0,22:tcp:10.0.0.0/8"
+  egress_rules  = "0:all:0.0.0.0/0"
+}
