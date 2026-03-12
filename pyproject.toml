@@ -1,0 +1,21 @@
+[project]
+name = "amanoform"
+version = "0.1.0"
+description = "Infrastructure as Code, by hand. Enterprise-grade manual infrastructure automation."
+readme = "README.md"
+authors = [
+    { name = "Carlos Loya", email = "loyacarlosa@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "click>=8.1",
+    "playwright>=1.40",
+    "rich>=13.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.11,<0.10.0"]
+build-backend = "uv_build"
+
+[project.scripts]
+amanoform = "amanoform.cli:cli"

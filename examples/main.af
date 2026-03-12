@@ -1,0 +1,13 @@
+# Amanoform configuration
+# This file defines the infrastructure that Amanoform will manually
+# provision through the AWS Console using browser automation.
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "af_ec2_instance" "web" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  name          = "amanoform-web-server"
+}
