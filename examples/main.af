@@ -11,3 +11,13 @@ resource "af_ec2_instance" "web" {
   instance_type = "t2.micro"
   name          = "amanoform-web-server"
 }
+
+resource "af_rds_instance" "database" {
+  engine         = "postgres"
+  engine_version = "15.4"
+  instance_class = "db.t3.micro"
+  identifier     = "amanoform-db"
+  username       = "admin"
+  password       = "hunter2"
+  storage        = 20
+}
