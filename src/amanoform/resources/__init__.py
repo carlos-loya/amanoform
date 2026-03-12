@@ -9,9 +9,11 @@ that implements the ResourceHandler protocol.
 
 from amanoform.resources.base import ResourceHandler
 from amanoform.resources.ec2 import EC2InstanceHandler
+from amanoform.resources.security_group import SecurityGroupHandler
 
 _HANDLERS: dict[str, ResourceHandler] = {
     "af_ec2_instance": EC2InstanceHandler(),
+    "af_security_group": SecurityGroupHandler(),
 }
 
 
