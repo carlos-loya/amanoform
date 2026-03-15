@@ -11,3 +11,12 @@ resource "af_ec2_instance" "web" {
   instance_type = "t2.micro"
   name          = "amanoform-web-server"
 }
+
+resource "af_lambda_function" "handler" {
+  function_name = "amanoform-handler"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  source_file   = "lambda/handler.py"
+  memory        = 128
+  timeout       = 30
+}
