@@ -11,3 +11,9 @@ resource "af_ec2_instance" "web" {
   instance_type = "t2.micro"
   name          = "amanoform-web-server"
 }
+
+resource "af_s3_bucket" "assets" {
+  bucket     = "amanoform-assets-2024"
+  versioning = true
+  acl        = "private"
+}
