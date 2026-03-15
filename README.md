@@ -23,6 +23,20 @@ Amanoform restores that connection by automating the manual process itself. Ever
 - Drift detection through visual inspection of the console
 - Battle-tested against every AWS Console UI redesign (just kidding, those break everything)
 
+## Why Java?
+
+Amanoform is written in Java because enterprise infrastructure tooling demands an enterprise language. Python would have been too concise, too readable, and too easy to install. With Java, users get the full enterprise experience:
+
+- A 150-line XML build file before writing a single line of application code
+- 14 Java source files to replace 7 Python files — a 2x increase in file count at no extra cost
+- Class names like `AWSManagementConsoleSessionProvider` and `EC2InstanceManualProvisioningHandler` that leave no ambiguity about what they do, at the modest price of 45+ characters each
+- A `ResourceHandlerRegistryFactory` class, because the Registry pattern and the Factory pattern should never be lonely
+- Checked exceptions that require try-catch blocks around `Thread.sleep()`, because what if the thread is interrupted while waiting for the AWS Console to render its React components
+- `Map<String, Object>` instead of `dict` — the Java type system ensures you know you're working with a map of strings to objects, even though every value gets cast to `Object` anyway
+- A 47MB uber-JAR artifact, most of which is Selenium's dependency tree
+
+The result is a tool that is functionally identical to the Python version but requires a JDK, Maven, and approximately 3x the source code. This is considered a feature.
+
 ## How It Works
 
 ```
@@ -38,25 +52,40 @@ Amanoform restores that connection by automating the manual process itself. Ever
                        buttons in Chrome
 ```
 
+## Prerequisites
+
+- **Java 17+** (because we need records, and records were added in Java 16, but 17 is the LTS)
+- **Maven 3.8+** (for building the 150-line XML build file)
+- **Google Chrome** or **Chromium** (Selenium Manager will download ChromeDriver automatically)
+
 ## Installation
 
 ```bash
-uv tool install amanoform
+# Clone the repository
+git clone https://github.com/carlos-loya/amanoform.git
+cd amanoform
+
+# Build the uber-JAR (this downloads the internet via Maven)
+mvn clean package
+
+# Run Amanoform
+java -jar target/amanoform-0.1.0.jar
 ```
 
-Or add it to your project:
+Or use the wrapper script:
 
 ```bash
-uv add amanoform
+chmod +x amanoform
+./amanoform
 ```
 
-After installation, initialize the browser runtime:
+After building, initialize the browser runtime:
 
 ```bash
-amanoform init
+./amanoform init
 ```
 
-This downloads a real copy of Chromium. Yes, your IaC tool needs a web browser. We don't make the rules. Actually, we do — and this is the rule.
+This validates that ChromeDriver is available. Selenium Manager will download it automatically if needed. Yes, your IaC tool needs a web browser and a browser driver. We don't make the rules. Actually, we do — and this is the rule.
 
 ## Configuration
 
@@ -93,7 +122,7 @@ export AMANOFORM_AWS_PASSWORD="your-iam-password"
 ### Preview changes
 
 ```bash
-amanoform plan
+./amanoform plan
 ```
 
 Amanoform will visually inspect the AWS Console and report what actions it needs to perform.
@@ -111,13 +140,13 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 ### Apply changes
 
 ```bash
-amanoform apply
+./amanoform apply
 ```
 
 Amanoform will open a browser session, navigate to the appropriate console pages, and carry out the required operations. You can watch it work in real-time with `--no-headless`:
 
 ```bash
-amanoform apply --no-headless
+./amanoform apply --no-headless
 ```
 
 We highly recommend `--no-headless` for your first run. Watching a ghost browser autonomously navigate AWS and launch EC2 instances is either awe-inspiring or terrifying depending on your perspective.
@@ -125,18 +154,49 @@ We highly recommend `--no-headless` for your first run. Watching a ghost browser
 ### Destroy infrastructure
 
 ```bash
-amanoform destroy
+./amanoform destroy
 ```
 
 Amanoform will navigate to each managed resource and perform the manual termination sequence. It's like watching someone clean up after a demo, but nobody's at the keyboard.
 
 ## Supported Resources
 
-| Resource Type | Console Workflow | Estimated Clicks |
-|---|---|---|
-| `af_ec2_instance` | EC2 > Launch Instance wizard | ~14 |
+| Resource Type | Console Workflow | Estimated Clicks | Handler Class Name (chars) |
+|---|---|---|---|
+| `af_ec2_instance` | EC2 > Launch Instance wizard | ~14 | `EC2InstanceManualProvisioningHandler` (38) |
 
-More resources coming soon. Each one has to be manually reverse-engineered from the AWS Console UI, which changes without warning. This is fine.
+More resources coming soon. Each one has to be manually reverse-engineered from the AWS Console UI, which changes without warning. Then you have to write a Java class with a name that accurately describes what it does, which takes almost as long.
+
+## Project Structure
+
+```
+src/main/java/com/amanoform/
+├── AmanoformApplication.java                          # Main entry point
+├── cli/
+│   ├── AmanoformCommandLineInterface.java             # CLI command group
+│   ├── InitCommand.java                               # amanoform init
+│   ├── PlanCommand.java                               # amanoform plan
+│   ├── ApplyCommand.java                              # amanoform apply
+│   └── DestroyCommand.java                            # amanoform destroy
+├── config/
+│   └── AmanoformConfigurationParser.java              # .af file parser
+├── planning/
+│   ├── PlannedAction.java                             # Action record
+│   └── InfrastructureActionPlanner.java               # Plan builder
+├── provider/
+│   └── AWSManagementConsoleSessionProvider.java        # Browser session
+├── resources/
+│   ├── ResourceHandler.java                           # Handler interface
+│   ├── ResourceHandlerRegistryFactory.java            # Handler registry
+│   └── ec2/
+│       └── EC2InstanceManualProvisioningHandler.java   # EC2 automation
+├── state/
+│   └── AmanoformInfrastructureStateManager.java       # State management
+└── util/
+    └── ConsoleOutput.java                             # Terminal colors
+```
+
+14 files. The Python version had 7. We consider this a 2x improvement in organizational structure.
 
 ## State Management
 
@@ -148,6 +208,8 @@ Amanoform maintains an `amanoform.state` file that tracks provisioned resources.
 
 Amanoform provisions an EC2 instance in approximately 30-45 seconds, depending on your internet connection and how fast AWS renders their React components. For comparison, the AWS CLI does it in under 2 seconds. But the AWS CLI doesn't give you the satisfaction of watching it happen.
 
+The Maven build takes approximately 90 seconds on first run, most of which is downloading Selenium and its transitive dependencies. Subsequent builds are faster, assuming Maven's local repository hasn't been cleared, your `~/.m2` directory hasn't been deleted, and nobody has run `mvn clean` recently.
+
 ## FAQ
 
 **Q: Is this a joke?**
@@ -156,23 +218,29 @@ A: Amanoform is a fully functional infrastructure provisioning tool. Whether tha
 **Q: Should I use this in production?**
 A: We cannot legally advise you to do that. We also cannot legally stop you.
 
+**Q: Why Java?**
+A: Because Python was too easy. The original implementation was 7 files and ~500 lines. The Java rewrite is 14 files and ~1,500 lines. We believe the additional ceremony improves the developer experience by making every design decision explicit, verbose, and impossible to miss.
+
 **Q: What happens when AWS changes their console UI?**
-A: The same thing that happens to your Selenium tests when the frontend team pushes on a Friday — everything breaks and somebody has to fix the selectors.
+A: The same thing that happens to your Selenium tests when the frontend team pushes on a Friday — everything breaks and somebody has to fix the XPath selectors.
 
 **Q: Can I use this with other cloud providers?**
-A: We'd love to support GCP and Azure consoles. Contributions welcome. Bring your own CSS selectors.
+A: We'd love to support GCP and Azure consoles. Contributions welcome. Bring your own CSS selectors and a `pom.xml` with at least 200 lines of XML.
+
+**Q: Why not Gradle instead of Maven?**
+A: Gradle uses Groovy or Kotlin for its build files, which would make the build configuration too readable. Maven's XML format ensures that even the build system requires enterprise-grade commitment.
 
 ## Philosophy
 
-Amanoform was born from the realization that a "manual automated deployment script" is not a contradiction — it's a design pattern. When you run `amanoform apply`, you can watch a real browser navigate real web pages and click real buttons. There is no magic. There is no abstraction. There is only a browser and a dream.
+Amanoform was born from the realization that a "manual automated deployment script" is not a contradiction — it's a design pattern. When you run `amanoform apply`, you can watch a real browser navigate real web pages and click real buttons. There is no magic. There is no abstraction. There is only a browser, a JVM, and a dream.
 
 > *"Any sufficiently advanced automation is indistinguishable from clicking buttons really fast."*
 
 ## Contributing
 
-We welcome contributions, especially new resource handlers. Each resource type requires a dedicated browser automation workflow that navigates the relevant AWS Console pages. See `src/amanoform/resources/base.py` for the handler protocol.
+We welcome contributions, especially new resource handlers. Each resource type requires a dedicated browser automation workflow that navigates the relevant AWS Console pages. See `ResourceHandler.java` for the handler interface.
 
-Fair warning: writing a resource handler means spending quality time with the AWS Console's DOM inspector. Pack snacks.
+Fair warning: writing a resource handler means spending quality time with the AWS Console's DOM inspector, then naming the resulting Java class something appropriately descriptive. `S3BucketManualProvisioningThroughConsoleInteractionHandler.java` has a nice ring to it.
 
 ## License
 

@@ -1,10 +1,20 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+# Maven build output
+target/
 
-# Virtual environments
-.venv
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# Compiled class files
+*.class
+
+# Python virtual environment (legacy)
+.venv/
+
+# Amanoform state (contains infrastructure state — do not commit)
+amanoform.state
+dependency-reduced-pom.xml

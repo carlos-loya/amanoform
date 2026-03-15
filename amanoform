@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# Amanoform — Infrastructure as Code, by hand.
+#
+# This wrapper script exists because typing "java -jar target/amanoform-0.1.0.jar"
+# every time is not the enterprise experience we're going for. Ironically, this
+# shell script is the most concise piece of code in the entire project.
+#
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+JAR_FILE="${SCRIPT_DIR}/target/amanoform-0.1.0.jar"
+
+if [ ! -f "${JAR_FILE}" ]; then
+    echo "Error: Amanoform JAR not found at ${JAR_FILE}"
+    echo ""
+    echo "Build Amanoform first:"
+    echo "  mvn clean package"
+    echo ""
+    echo "This will download approximately 200 Maven dependencies,"
+    echo "compile 14 Java source files, and produce a single uber-JAR."
+    echo "It's the circle of enterprise life."
+    exit 1
+fi
+
+java -jar "${JAR_FILE}" "$@"
