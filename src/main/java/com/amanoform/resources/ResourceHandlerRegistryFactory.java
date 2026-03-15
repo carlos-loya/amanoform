@@ -1,6 +1,7 @@
 package com.amanoform.resources;
 
 import com.amanoform.resources.ec2.EC2InstanceManualProvisioningHandler;
+import com.amanoform.resources.securitygroup.SecurityGroupManualProvisioningHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,7 @@ public final class ResourceHandlerRegistryFactory {
 
     static {
         HANDLER_REGISTRY.put("af_ec2_instance", new EC2InstanceManualProvisioningHandler());
+        HANDLER_REGISTRY.put("af_security_group", new SecurityGroupManualProvisioningHandler());
     }
 
     /** Prevent instantiation of registry factory. */
