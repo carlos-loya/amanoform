@@ -11,3 +11,10 @@ resource "af_ec2_instance" "web" {
   instance_type = "t2.micro"
   name          = "amanoform-web-server"
 }
+
+resource "af_iam_role" "lambda_exec" {
+  name               = "amanoform-lambda-role"
+  assume_role_policy = "lambda.amazonaws.com"
+  policies           = "AWSLambdaBasicExecutionRole,AmazonS3ReadOnlyAccess"
+  description        = "Lambda execution role managed by Amanoform"
+}
