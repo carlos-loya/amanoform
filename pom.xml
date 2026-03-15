@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Amanoform — Infrastructure as Code, by hand.
+
+  This Maven POM file orchestrates the enterprise-grade build pipeline
+  for Amanoform's manual infrastructure automation platform. If you're
+  wondering why an IaC tool needs 150 lines of XML just to declare its
+  dependencies, welcome to Java.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.amanoform</groupId>
+    <artifactId>amanoform</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+
+    <name>Amanoform</name>
+    <description>
+        Infrastructure as Code, by hand. Enterprise-grade manual
+        infrastructure automation through browser-driven console
+        interaction workflows.
+    </description>
+
+    <developers>
+        <developer>
+            <name>Carlos Loya</name>
+            <email>loyacarlosa@gmail.com</email>
+        </developer>
+    </developers>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Dependency versions managed here for enterprise governance -->
+        <selenium.version>4.18.1</selenium.version>
+        <picocli.version>4.7.5</picocli.version>
+        <gson.version>2.10.1</gson.version>
+    </properties>
+
+    <dependencies>
+        <!--
+          Selenium WebDriver — the industry-standard browser automation
+          framework. Unlike Playwright, Selenium has been around since 2004,
+          giving it two decades of enterprise credibility and Stack Overflow
+          answers.
+        -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+
+        <!--
+          Picocli — a mighty tiny command line interface framework.
+          It's the closest Java gets to Python's Click, which is to say
+          it only requires three annotations per option instead of zero.
+        -->
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>${picocli.version}</version>
+        </dependency>
+
+        <!--
+          Gson — Google's JSON serialization library.
+          Because java.io.ObjectOutputStream would have been too easy.
+          Just kidding, that would have been worse.
+        -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+              Maven Compiler Plugin — because javac needs a plugin to
+              be told what version of Java to compile. The defaults are
+              from 2004, naturally.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.12.1</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+
+            <!--
+              Maven Shade Plugin — creates an uber-JAR containing all
+              dependencies. The resulting artifact weighs approximately
+              47MB, most of which is Selenium's dependency tree.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.amanoform.AmanoformApplication</mainClass>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
